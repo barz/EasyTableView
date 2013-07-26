@@ -40,7 +40,8 @@
 
 typedef enum {
 	EasyTableViewOrientationVertical,
-	EasyTableViewOrientationHorizontal
+	EasyTableViewOrientationHorizontal,
+    EasyTableViewOrientationHorizontalR2L   // Hsoi 2013-07-26 - added. Normal horizontal runs left-to-right, this runs right-to-left (header on right, row/column 1 on right)
 } EasyTableViewOrientation;
 
 @class EasyTableView;
@@ -75,6 +76,7 @@ typedef enum {
 @property (nonatomic, assign) CGPoint contentOffset;
 @property (nonatomic, assign) NSUInteger numberOfCells;
 
+- (id)initWithFrame:(CGRect)frame numberOfR2LColumns:(NSUInteger)numCells ofWidth:(CGFloat)cellWidth;
 - (id)initWithFrame:(CGRect)frame numberOfColumns:(NSUInteger)numCells ofWidth:(CGFloat)cellWidth;
 - (id)initWithFrame:(CGRect)frame numberOfRows:(NSUInteger)numCells ofHeight:(CGFloat)cellHeight;
 - (CGPoint)offsetForView:(UIView *)cell;

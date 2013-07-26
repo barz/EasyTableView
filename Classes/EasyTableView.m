@@ -50,6 +50,16 @@
 #pragma mark Initialization
 
 
+- (id)initWithFrame:(CGRect)frame numberOfR2LColumns:(NSUInteger)numCols ofWidth:(CGFloat)width {
+    if (self = [super initWithFrame:frame]) {
+		_numItems			= numCols;
+		_cellWidthOrHeight	= width;
+		
+		[self createTableWithOrientation:EasyTableViewOrientationHorizontalR2L];
+	}
+    return self;
+}
+
 - (id)initWithFrame:(CGRect)frame numberOfColumns:(NSUInteger)numCols ofWidth:(CGFloat)width {
     if (self = [super initWithFrame:frame]) {
 		_numItems			= numCols;
@@ -77,7 +87,7 @@
 	_orientation = orientation;
 	
 	UITableView *tableView;
-	if (orientation == EasyTableViewOrientationHorizontal) {
+	if (orientation == EasyTableViewOrientationHorizontal || orientation == EasyTableViewOrientationHorizontalR2L) {
 		int xOrigin	= (self.bounds.size.width - self.bounds.size.height)/2;
 		int yOrigin	= (self.bounds.size.height - self.bounds.size.width)/2;
 		tableView	= [[UITableView alloc] initWithFrame:CGRectMake(xOrigin, yOrigin, self.bounds.size.height, self.bounds.size.width)];
@@ -91,8 +101,12 @@
 	tableView.autoresizingMask	= UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	
 	// Rotate the tableView 90 degrees so that it is horizontal
-	if (orientation == EasyTableViewOrientationHorizontal)
+	if (orientation == EasyTableViewOrientationHorizontal) {
 		tableView.transform	= CGAffineTransformMakeRotation(-M_PI/2);
+    }
+    else if (orientation == EasyTableViewOrientationHorizontalR2L) {
+		tableView.transform	= CGAffineTransformMakeRotation(M_PI/2);
+    }
 	
 	tableView.showsVerticalScrollIndicator	 = NO;
 	tableView.showsHorizontalScrollIndicator = NO;
@@ -123,7 +137,7 @@
 - (CGPoint)contentOffset {
 	CGPoint offset = self.tableView.contentOffset;
 	
-	if (_orientation == EasyTableViewOrientationHorizontal)
+	if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 		offset = CGPointMake(offset.y, offset.x);
 	
 	return offset;
@@ -133,7 +147,7 @@
 - (CGSize)contentSize {
 	CGSize size = self.tableView.contentSize;
 	
-	if (_orientation == EasyTableViewOrientationHorizontal)
+	if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 		size = CGSizeMake(size.height, size.width);
 	
 	return size;
@@ -141,7 +155,7 @@
 
 
 - (void)setContentOffset:(CGPoint)offset {
-	if (_orientation == EasyTableViewOrientationHorizontal)
+	if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 		self.tableView.contentOffset = CGPointMake(offset.y, offset.x);
 	else
 		self.tableView.contentOffset = offset;
@@ -151,7 +165,7 @@
 - (void)setContentOffset:(CGPoint)offset animated:(BOOL)animated {
 	CGPoint newOffset;
 	
-	if (_orientation == EasyTableViewOrientationHorizontal) {
+	if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L) {
 		newOffset = CGPointMake(offset.y, offset.x);
 	}
 	else {
@@ -206,7 +220,7 @@
 -(CGFloat)tableView:(UITableView*)tableView heightForHeaderInSection:(NSInteger)section {
     if ([delegate respondsToSelector:@selector(easyTableView:viewForHeaderInSection:)]) {
         UIView *headerView = [delegate easyTableView:self viewForHeaderInSection:section];
-		if (_orientation == EasyTableViewOrientationHorizontal)
+		if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 			return headerView.frame.size.width;
 		else 
 			return headerView.frame.size.height;
@@ -217,7 +231,7 @@
 -(CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if ([delegate respondsToSelector:@selector(easyTableView:viewForFooterInSection:)]) {
         UIView *footerView = [delegate easyTableView:self viewForFooterInSection:section];
-		if (_orientation == EasyTableViewOrientationHorizontal)
+		if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 			return footerView.frame.size.width;
 		else 
 			return footerView.frame.size.height;
@@ -228,7 +242,7 @@
 - (UIView *)viewToHoldSectionView:(UIView *)sectionView {
 	// Enforce proper section header/footer view height abd origin. This is required because
 	// of the way UITableView resizes section views on orientation changes.
-	if (_orientation == EasyTableViewOrientationHorizontal)
+	if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 		sectionView.frame = CGRectMake(0, 0, sectionView.frame.size.width, self.frame.size.height);
 	
 	UIView *rotatedView = [[UIView alloc] initWithFrame:sectionView.frame];
@@ -237,6 +251,10 @@
 		rotatedView.transform = CGAffineTransformMakeRotation(M_PI/2);
 		sectionView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin;
 	}
+    else if (_orientation == EasyTableViewOrientationHorizontalR2L) {
+		rotatedView.transform = CGAffineTransformMakeRotation(-M_PI/2);
+		sectionView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin; // ???: - bottom?
+    }
 	else {
 		sectionView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 	}
@@ -345,7 +363,7 @@
 #pragma mark TableViewDataSource
 
 - (void)setCell:(UITableViewCell *)cell boundsForOrientation:(EasyTableViewOrientation)theOrientation {
-	if (theOrientation == EasyTableViewOrientationHorizontal) {
+	if (theOrientation == EasyTableViewOrientationHorizontal || theOrientation == EasyTableViewOrientationHorizontalR2L) {
 		cell.bounds	= CGRectMake(0, 0, self.bounds.size.height, _cellWidthOrHeight);
 	}
 	else {
@@ -368,7 +386,7 @@
 		
 		// Add a view to the cell's content view that is rotated to compensate for the table view rotation
 		CGRect viewRect;
-		if (_orientation == EasyTableViewOrientationHorizontal)
+		if (_orientation == EasyTableViewOrientationHorizontal || _orientation == EasyTableViewOrientationHorizontalR2L)
 			viewRect = CGRectMake(0, 0, cell.bounds.size.height, cell.bounds.size.width);
 		else
 			viewRect = CGRectMake(0, 0, cell.bounds.size.width, cell.bounds.size.height);
@@ -382,6 +400,10 @@
 			rotatedView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
 			rotatedView.transform = CGAffineTransformMakeRotation(M_PI/2);
 		}
+        else if (_orientation == EasyTableViewOrientationHorizontalR2L) {
+			rotatedView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+			rotatedView.transform = CGAffineTransformMakeRotation(-M_PI/2);
+        }
 		else 
 			rotatedView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 		
